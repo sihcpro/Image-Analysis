@@ -3,11 +3,11 @@ import numpy as np
 from queue import Queue
 
 # Edit this info
-acceptable_color_error = 3
+acceptable_color_error = 50
 acceptable_near_error = 30
 
-img_name = "quynh"
-img_path = "img1.png"
+img_name = "img"
+img_path = "demo-1.png"
 
 destination_color = np.array([0, 0, 0])
 
@@ -35,12 +35,12 @@ def generate_upper_and_lower_bound(target_color, acceptable_error):
 
 
 def compare_pixel_with_error(pixel, upper_bound, lower_bound):
-    global acceptable_error
     return all(pixel <= upper_bound) and all(pixel >= lower_bound)
 
 
 def check_and_push_search_queue(img, current_color, next_pos):
-    global unchecked_matix, search_queue, acceptable_near_error, destination_color
+    global unchecked_matix, search_queue, acceptable_near_error
+    global destination_color
 
     upper_bound, lower_bound = generate_upper_and_lower_bound(
         current_color, acceptable_near_error
@@ -54,7 +54,8 @@ def check_and_push_search_queue(img, current_color, next_pos):
 
 
 def push_around_pixel(img, current_position, current_color):
-    global unchecked_matix, img_x, img_y, search_queue, acceptable_near_error, destination_color
+    global unchecked_matix, img_x, img_y, search_queue, acceptable_near_error
+    global destination_color
     x = current_position[0]
     y = current_position[1]
     # print("push_around_pixel: xy:", current_position)
@@ -75,7 +76,8 @@ def push_around_pixel(img, current_position, current_color):
 
 
 def track_and_set_color(img, current_position, current_color):
-    global acceptable_near_error, destination_color, search_queue, unchecked_matix
+    global acceptable_near_error, search_queue, unchecked_matix
+    global destination_color
 
     push_around_pixel(img, current_position, current_color)
     while not search_queue.empty():
@@ -91,11 +93,21 @@ def set_img_color(img):
         target_color, acceptable_color_error
     )
     print("target_color", target_color)
+    image_size = len(img) * len(img[0])
+    show_log_frequency = 5
+    line_to_show = len(img) // show_log_frequency
+    line_cnt = 0
+    cnt = 0
     for x in range(len(img)):
+        line_cnt += 1
         for y in range(len(img[x])):
+            cnt += 1
             if compare_pixel_with_error(img[x, y], upper_bound, lower_bound):
                 track_and_set_color(img, (x, y), img[x, y])
                 img[x, y] = destination_color
+        if line_cnt == line_to_show:
+            line_cnt = 0
+            print(f"{cnt*100/image_size} %")
     return img
 
 
